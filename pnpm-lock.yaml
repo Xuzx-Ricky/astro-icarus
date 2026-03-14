@@ -1,0 +1,58 @@
+lockfileVersion: '9.0'
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+importers:
+  .:
+    dependencies:
+      '@astrojs/mdx':
+        specifier: ^4.0.0
+        version: 4.0.0(astro@5.0.0)
+      '@astrojs/rss':
+        specifier: ^4.0.0
+        version: 4.0.0
+      '@astrojs/sitemap':
+        specifier: ^3.2.0
+        version: 3.2.0
+      astro:
+        specifier: ^5.0.0
+        version: 5.0.0(typescript@5.0.0)
+      fuse.js:
+        specifier: ^7.0.0
+        version: 7.0.0
+      sharp:
+        specifier: ^0.33.0
+        version: 0.33.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.0.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.0.0
+packages:
+  '@astrojs/mdx@4.0.0':
+    resolution: {integrity: sha512-AAAA}
+    engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0}
+    peerDependencies:
+      astro: ^5.0.0
+  '@astrojs/rss@4.0.0':
+    resolution: {integrity: sha512-AAAA}
+  '@astrojs/sitemap@3.2.0':
+    resolution: {integrity: sha512-AAAA}
+  astro@5.0.0:
+    resolution: {integrity: sha512-AAAA}
+    engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0, npm: '>=9.6.5', pnpm: '>=7.1.0'}
+    hasBin: true
+  fuse.js@7.0.0:
+    resolution: {integrity: sha512-AAAA}
+    engines: {node: '>=10'}
+  sharp@0.33.0:
+    resolution: {integrity: sha512-AAAA}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+  '@types/node@22.0.0':
+    resolution: {integrity: sha512-AAAA}
+  typescript@5.0.0:
+    resolution: {integrity: sha512-AAAA}
+    engines: {node: '>=12.20'}
+    hasBin: true

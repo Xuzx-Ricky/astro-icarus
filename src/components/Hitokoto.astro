@@ -1,0 +1,389 @@
+---
+import { HITOKOTO_CONFIG } from '../config';
+
+const { enabled, providers, cacheSize } = HITOKOTO_CONFIG;
+---
+
+{enabled && (
+  <div class="card hitokoto-widget">
+    <div class="card-content">
+      <div class="hitokoto-header">
+        <span class="hitokoto-provider" id="hitokoto-provider"></span>
+        <button class="hitokoto-refresh" id="hitokoto-refresh" title="换一句" aria-label="换一句">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+      <div class="hitokoto-content">
+        <i class="fas fa-quote-left hitokoto-icon"></i>
+        <p class="hitokoto-text" id="hitokoto-text">
+          <span class="hitokoto-loading">正在加载一言...</span>
+        </p>
+        <p class="hitokoto-from" id="hitokoto-from"></p>
+      </div>
+    </div>
+  </div>
+)}
+
+<script is:inline define:vars={{ providers, cacheSize }}>
+  (function() {
+    // 内置语录库
+    const QUOTE_DATABASES = {
+      // 流浪地球经典语录
+      wandering_earth: [
+        { text: "无论最终结果将人类历史导向何处，我们决定，选择希望。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "希望，是我们这个年代像钻石一样珍贵的东西。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "道路千万条，安全第一条。行车不规范，亲人两行泪。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "地球，我的流浪地球啊。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "没有人的文明，毫无意义。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "我相信，人类的勇气可以跨越时间，跨越每一个历史、当下和未来。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "我们的人一定可以完成任务。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "危难当前，唯有责任。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "从历史上看，人类的命运取决于人类的选择。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "我相信会再次看到蓝天，鲜花挂满枝头。", from: "《流浪地球2》", author: "刘慈欣" },
+        { text: "最初，没有人在意这场灾难，这不过是一场山火，一次旱灾，一个物种的灭绝，一座城市的消失。直到这场灾难和每个人息息相关。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "让人类永远保持理智，确实是一种奢求。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "爸爸要去执行任务，这是爸爸一生中最重要的任务。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "我已经记不清你这个混蛋的样子了。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "总有一天，贝加尔湖的冰会化为水的。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "木星就像一个巨大的气球，里面全是氢气。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "我们还有孩子，孩子的孩子还有孩子，总有一天，冰会化成水的。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "这发动机的声音就像心跳。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "我想回家，看看我妈。", from: "《流浪地球》", author: "刘慈欣" },
+        { text: "快离开这里，这里要塌了！", from: "《流浪地球》", author: "刘慈欣" },
+      ],
+      // 百度弱智吧金牌段子
+      ruozhiba: [
+        { text: "既然所有的生命都要死亡，那么人生的意义是什么？", from: "弱智吧", author: "" },
+        { text: "如果我现在开始睡觉，那我明天是不是可以起得更早？", from: "弱智吧", author: "" },
+        { text: "为什么超市里的商品都要标价格？直接写上多少钱不就行了？", from: "弱智吧", author: "" },
+        { text: "我每天早上都要喝一杯咖啡，这样我下午就可以少喝一杯。", from: "弱智吧", author: "" },
+        { text: "如果我每天多睡一小时，那一年是不是可以多睡365个小时？", from: "弱智吧", author: "" },
+        { text: "为什么手机没电了要充电？直接换一块电池不就行了？", from: "弱智吧", author: "" },
+        { text: "既然地球是圆的，那我是不是一直往东走就能回到原地？", from: "弱智吧", author: "" },
+        { text: "如果我每天都存一块钱，那一年是不是可以存365块钱？", from: "弱智吧", author: "" },
+        { text: "为什么电梯要分上下？直接做一个可以上下运行的不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都跑步，那我是不是可以跑得更快？", from: "弱智吧", author: "" },
+        { text: "为什么水会蒸发？直接不让它蒸发不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都学习，那我是不是可以变得更聪明？", from: "弱智吧", author: "" },
+        { text: "为什么天会黑？直接让它一直亮着不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都吃饭，那我是不是就不会饿？", from: "弱智吧", author: "" },
+        { text: "为什么人会死？直接让大家都活着不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都喝水，那我是不是就不会渴？", from: "弱智吧", author: "" },
+        { text: "为什么火会烧？直接让它不烧不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都睡觉，那我是不是就不会困？", from: "弱智吧", author: "" },
+        { text: "为什么风会吹？直接让它不吹不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都呼吸，那我是不是就不会窒息？", from: "弱智吧", author: "" },
+        { text: "为什么雨会下？直接让它不下不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都笑，那我是不是就会开心？", from: "弱智吧", author: "" },
+        { text: "为什么雪会飘？直接让它不飘不就行了？", from: "弱智吧", author: "" },
+        { text: "如果我每天都哭，那我是不是就会难过？", from: "弱智吧", author: "" },
+        { text: "为什么雷会响？直接让它不响不就行了？", from: "弱智吧", author: "" },
+      ],
+      // 泰戈尔飞鸟集
+      tagore: [
+        { text: "世界以痛吻我，我要报之以歌。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "生如夏花之绚烂，死如秋叶之静美。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "如果你因失去了太阳而流泪，那么你也将失去群星了。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "天空没有翅膀的痕迹，但我已飞过。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "我们把世界看错了，反说它欺骗我们。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "错误经不起失败，但是真理却不怕失败。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "鸟儿愿为一朵云，云儿愿为一只鸟。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "根是地下的枝，枝是空中的根。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "不要因为你自己没有胃口而去责备你的食物。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "水里的游鱼是沉默的，陆地上的兽类是喧闹的，空中的飞鸟是歌唱着的。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "太阳只穿一件朴素的光衣，白云却披了灿烂的裙裾。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "权势对世界说道：你是我的。世界便把权势囚禁在她的宝座下面。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "爱情对世界说道：我是你的。世界便给予爱情以在她屋内来往的自由。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "枯竭的河床，并不感谢它的过去。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "尘土受到损辱，却以她的花朵来报答。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "只管走过去，不必逗留着采了花朵来保存，因为一路上花朵自会继续开放的。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "回声嘲笑她的原声，以证明她是原声。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "当人是兽时，他比兽还坏。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "道路虽然拥挤，却是寂寞的，因为它是不被爱的。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "杯中的水是光辉的，海中的水却是黑色的。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "小理可以用文字表达清楚，大理却只有沉默。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "太阳在西方落下时，他的早晨的东方已静悄悄地站在他面前。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "让我设想，在群星之中，有一颗星是指导着我的生命通过不可知的黑暗的。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "使生如夏花之绚烂，死如秋叶之静美。", from: "《飞鸟集》", author: "泰戈尔" },
+        { text: "那想做好人的，在门外敲着门；那爱人的，看见门敞开着。", from: "《飞鸟集》", author: "泰戈尔" },
+      ],
+      // 经典一言
+      classic: [
+        { text: "生活不止眼前的苟且，还有诗和远方。", from: "", author: "" },
+        { text: "星光不问赶路人，时光不负有心人。", from: "", author: "" },
+        { text: "愿你出走半生，归来仍是少年。", from: "", author: "" },
+        { text: "凡是过往，皆为序章。", from: "《暴风雨》", author: "莎士比亚" },
+        { text: "保持热爱，奔赴山海。", from: "", author: "" },
+        { text: "山高路远，看世界，也找自己。", from: "", author: "" },
+        { text: "且将新火试新茶，诗酒趁年华。", from: "《望江南》", author: "苏轼" },
+        { text: "人生如逆旅，我亦是行人。", from: "《临江仙》", author: "苏轼" },
+        { text: "愿你一生努力，一生被爱。", from: "", author: "" },
+        { text: "念念不忘，必有回响。", from: "", author: "" },
+        { text: "岁月漫长，值得等待。", from: "", author: "" },
+        { text: "心有猛虎，细嗅蔷薇。", from: "", author: "萨松" },
+        { text: "不乱于心，不困于情。不畏将来，不念过往。", from: "", author: "丰子恺" },
+        { text: "你若盛开，清风自来。", from: "", author: "" },
+        { text: "不忘初心，方得始终。", from: "《华严经》", author: "" },
+        { text: "岁月静好，现世安稳。", from: "", author: "胡兰成" },
+        { text: "得之我幸，失之我命。", from: "", author: "徐志摩" },
+        { text: "向来缘浅，奈何情深。", from: "", author: "" },
+        { text: "陌上花开，可缓缓归矣。", from: "", author: "钱镠" },
+        { text: "山有木兮木有枝，心悦君兮君不知。", from: "《越人歌》", author: "" },
+      ],
+    };
+    
+    const STORAGE_KEY = 'hitokoto_cache_v2';
+    const CACHE_SIZE = cacheSize || 10;
+    const SHOWN_KEY = 'hitokoto_shown_v2';
+    
+    // 获取缓存
+    function getCache() {
+      try {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          const data = JSON.parse(cached);
+          // 检查缓存是否有效（24小时内）
+          if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+            return data.quotes || [];
+          }
+        }
+      } catch (e) {}
+      return [];
+    }
+    
+    // 设置缓存
+    function setCache(quotes) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          quotes: quotes,
+          timestamp: Date.now()
+        }));
+      } catch (e) {}
+    }
+    
+    // 获取已显示的语录索引
+    function getShownIndexes() {
+      try {
+        return JSON.parse(sessionStorage.getItem(SHOWN_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    
+    // 添加已显示的语录索引
+    function addShownIndex(index) {
+      try {
+        const shown = getShownIndexes();
+        shown.push(index);
+        // 只保留最近30个
+        if (shown.length > 30) shown.shift();
+        sessionStorage.setItem(SHOWN_KEY, JSON.stringify(shown));
+      } catch (e) {}
+    }
+    
+    // 预缓存语录
+    function preCacheQuotes() {
+      let allQuotes = [];
+      const enabledProviders = providers || ['classic', 'wandering_earth', 'tagore', 'ruozhiba'];
+      
+      enabledProviders.forEach(provider => {
+        if (QUOTE_DATABASES[provider]) {
+          allQuotes = allQuotes.concat(QUOTE_DATABASES[provider].map(q => ({
+            ...q,
+            provider: provider
+          })));
+        }
+      });
+      
+      // 打乱顺序
+      allQuotes = allQuotes.sort(() => Math.random() - 0.5);
+      
+      // 保存到缓存
+      setCache(allQuotes);
+      return allQuotes;
+    }
+    
+    // 获取一条语录
+    function getQuote() {
+      let quotes = getCache();
+      
+      // 如果缓存为空或太少，重新预缓存
+      if (quotes.length < CACHE_SIZE) {
+        quotes = preCacheQuotes();
+      }
+      
+      const shownIndexes = getShownIndexes();
+      
+      // 找到未显示的语录
+      let availableIndexes = [];
+      for (let i = 0; i < quotes.length; i++) {
+        if (!shownIndexes.includes(i)) {
+          availableIndexes.push(i);
+        }
+      }
+      
+      // 如果都显示过了，重置
+      if (availableIndexes.length === 0) {
+        sessionStorage.removeItem(SHOWN_KEY);
+        availableIndexes = Array.from({ length: quotes.length }, (_, i) => i);
+      }
+      
+      // 随机选择一条
+      const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+      const quote = quotes[randomIndex];
+      
+      // 记录已显示
+      addShownIndex(randomIndex);
+      
+      return quote;
+    }
+    
+    // 显示语录
+    function displayQuote() {
+      const textEl = document.getElementById('hitokoto-text');
+      const fromEl = document.getElementById('hitokoto-from');
+      const providerEl = document.getElementById('hitokoto-provider');
+      
+      if (!textEl) return;
+      
+      const quote = getQuote();
+      
+      // 显示内容
+      textEl.textContent = quote.text;
+      
+      // 显示来源
+      const fromParts = [];
+      if (quote.from) fromParts.push(quote.from);
+      if (quote.author) fromParts.push(quote.author);
+      fromEl.textContent = fromParts.length ? '—— ' + fromParts.join(' · ') : '';
+      
+      // 显示提供商
+      const providerNames = {
+        wandering_earth: '流浪地球',
+        ruozhiba: '弱智吧',
+        tagore: '飞鸟集',
+        classic: '经典语录'
+      };
+      providerEl.textContent = providerNames[quote.provider] || '';
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', displayQuote);
+    } else {
+      displayQuote();
+    }
+    
+    // 刷新按钮
+    const refreshBtn = document.getElementById('hitokoto-refresh');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (icon) {
+          icon.classList.add('fa-spin');
+          setTimeout(() => icon.classList.remove('fa-spin'), 500);
+        }
+        displayQuote();
+      });
+    }
+    
+    // 页面加载完成后预缓存更多语录
+    window.addEventListener('load', function() {
+      setTimeout(preCacheQuotes, 2000);
+    });
+  })();
+</script>
+
+<style>
+  .hitokoto-widget {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  
+  .hitokoto-widget .card-content {
+    padding: 1.5rem;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .hitokoto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  
+  .hitokoto-provider {
+    font-size: 0.75rem;
+    color: var(--text-lighter);
+    background: var(--tag-bg);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius);
+  }
+  
+  .hitokoto-content {
+    position: relative;
+    padding: 0 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .hitokoto-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 1.5rem;
+    color: var(--primary);
+    opacity: 0.6;
+  }
+  
+  .hitokoto-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    font-style: italic;
+    min-height: 2rem;
+  }
+  
+  .hitokoto-loading { color: var(--text-light); font-style: normal; }
+  
+  .hitokoto-from {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    text-align: right;
+    min-height: 1.5rem;
+  }
+  
+  .hitokoto-refresh {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: var(--tag-bg);
+    color: var(--text-light);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .hitokoto-refresh:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+  
+  [data-theme="dark"] .hitokoto-refresh:hover {
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  }
+  
+  @media (max-width: 768px) {
+    .hitokoto-widget .card-content { padding: 1.25rem; min-height: 120px; }
+    .hitokoto-content { padding: 0 1.5rem; }
+    .hitokoto-text { font-size: 1rem; }
+  }
+</style>

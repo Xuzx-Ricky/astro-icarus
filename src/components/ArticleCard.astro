@@ -1,0 +1,248 @@
+---
+import { formatDate, calculateReadingTime, getWordCount } from '../utils/helpers';
+import OptimizedImage from './OptimizedImage.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const readingTime = calculateReadingTime(post.body);
+const wordCount = getWordCount(post.body);
+---
+
+<article class="card article-card">
+  {post.data.thumbnail && (
+    <div class="card-image">
+      <a href={`/blog/${post.slug}/`} class="image-link">
+        <OptimizedImage 
+          src={post.data.thumbnail} 
+          alt={post.data.title}
+          width={800}
+          height={450}
+          loading="lazy"
+          class="article-thumbnail"
+        />
+      </a>
+    </div>
+  )}
+  
+  <div class="card-content">
+    <h2 class="title is-4 article-title">
+      <a href={`/blog/${post.slug}/`}>
+        {post.data.sticky && <span class="sticky-badge"><i class="fas fa-thumbtack"></i> 置顶</span>}
+        {post.data.title}
+      </a>
+    </h2>
+    
+    <div class="article-meta">
+      <span class="meta-item">
+        <i class="far fa-calendar-alt"></i>
+        {formatDate(post.data.pubDatetime)}
+      </span>
+      <span class="meta-item">
+        <i class="far fa-folder"></i>
+        <a href={`/categories/${post.data.category}/`}>{post.data.category}</a>
+      </span>
+      <span class="meta-item">
+        <i class="far fa-clock"></i>
+        {readingTime} 分钟
+      </span>
+      <span class="meta-item">
+        <i class="far fa-file-word"></i>
+        {wordCount} 字
+      </span>
+    </div>
+    
+    <div class="content article-excerpt">
+      {post.data.description}
+    </div>
+    
+    <div class="article-footer">
+      <div class="article-tags">
+        {post.data.tags.map(tag => (
+          <a href={`/tags/${tag}/`} class="tag">{tag}</a>
+        ))}
+      </div>
+      <a href={`/blog/${post.slug}/`} class="read-more">
+        阅读更多
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .article-card {
+    margin-bottom: 2.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .article-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  [data-theme="dark"] .article-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 240, 255, 0.2);
+  }
+  
+  .sticky-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+    color: #fff;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius);
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .card-image {
+    overflow: hidden;
+    border-radius: var(--radius) var(--radius) 0 0;
+    line-height: 0;
+    font-size: 0;
+  }
+  
+  .image-link {
+    display: block;
+    line-height: 0;
+    font-size: 0;
+  }
+  
+  .article-thumbnail {
+    width: 100%;
+    display: block;
+  }
+  
+  .article-thumbnail :global(.optimized-image) {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .article-card:hover .article-thumbnail :global(.optimized-image) {
+    transform: scale(1.05);
+  }
+  
+  .article-title {
+    margin-bottom: 1rem;
+  }
+  
+  .article-title a {
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .article-title a:hover {
+    color: var(--primary);
+  }
+  
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+  
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  
+  .meta-item a {
+    color: inherit;
+  }
+  
+  .meta-item a:hover {
+    color: var(--primary);
+  }
+  
+  .article-excerpt {
+    color: var(--text-light);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+  
+  .article-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-light);
+  }
+  
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .article-tags .tag {
+    background: var(--tag-bg);
+    color: var(--text-light);
+    transition: all 0.2s ease;
+  }
+  
+  .article-tags .tag:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+  
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .read-more:hover {
+    gap: 0.75rem;
+  }
+  
+  .read-more i {
+    transition: transform 0.2s ease;
+  }
+  
+  .read-more:hover i {
+    transform: translateX(4px);
+  }
+  
+  @media (max-width: 768px) {
+    .article-card {
+      margin-bottom: 1.5rem;
+    }
+    
+    .article-meta {
+      gap: 0.75rem;
+      font-size: 0.85rem;
+    }
+    
+    .article-footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .read-more {
+      align-self: flex-end;
+    }
+  }
+</style>
